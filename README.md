@@ -200,12 +200,12 @@ int main(int argc, char *argv[]) {
     }
 }
 ```
-### 2) a.Sesuai request dari adiknya Max ingin nama programnya dudududu.c. Sebelum program parent process dan child process, ada input dari user berupa 2 string. Contoh input: tiga tujuh.
+### 2) a. Sesuai request dari adiknya Max ingin nama programnya dudududu.c. Sebelum program parent process dan child process, ada input dari user berupa 2 string. Contoh input: tiga tujuh.
 
 Pada soal ini saya menggunakan fungsi ``void numberToWords(int number, char *words) {`` yang akan mengubah angka kemudian sistem akan membacanya sebagai string. 
  Berikut hasilnya   
 
-blob:https://web.whatsapp.com/f76e6322-e541-477a-a23e-dfdcfe131c40
+https://web.whatsapp.com/f76e6322-e541-477a-a23e-dfdcfe131c40
 
 pada inputan diatas sistem sudah bisa membaca 2 string yang dimasukkan pengguna yaitu "tujuh tiga".
 
@@ -240,7 +240,7 @@ int stringToNumber(char *str) {
 }
 ```
 
-dimana fungsinya untuk mengubah dua string dar inputan pengguna menjadi angka.
+dimana fungsinya untuk mengubah dua string dari inputan pengguna menjadi angka.
 
 
 
