@@ -205,7 +205,8 @@ int main(int argc, char *argv[]) {
 Pada soal ini saya menggunakan fungsi ``void numberToWords(int number, char *words) {`` yang akan mengubah angka kemudian sistem akan membacanya sebagai string. 
  Berikut hasilnya   
 
-https://web.whatsapp.com/f76e6322-e541-477a-a23e-dfdcfe131c40
+![WhatsApp Image 2024-05-10 at 1 35 16 AM](https://github.com/Cakgemblung/Sisop-3-2024-MH-IT09/assets/80327619/3b81dcb6-c396-4f00-bae0-851d67913070)
+
 
 pada inputan diatas sistem sudah bisa membaca 2 string yang dimasukkan pengguna yaitu "tujuh tiga".
 
