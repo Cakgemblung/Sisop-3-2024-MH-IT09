@@ -200,5 +200,47 @@ int main(int argc, char *argv[]) {
     }
 }
 ```
-### 2) a.Sesuai request dari adiknya Max ingin nama programnya dudududu.c. Sebelum program parent process dan child process, ada input dari user berupa 2 string. Contoh input: tiga tujuh. 
+### 2) a.Sesuai request dari adiknya Max ingin nama programnya dudududu.c. Sebelum program parent process dan child process, ada input dari user berupa 2 string. Contoh input: tiga tujuh.
+
+Pada soal ini saya menggunakan fungsi ``void numberToWords(int number, char *words) {`` yang akan mengubah angka kemudian sistem akan membacanya sebagai string. 
+ Berikut hasilnya   
+
+blob:https://web.whatsapp.com/f76e6322-e541-477a-a23e-dfdcfe131c40
+
+pada inputan diatas sistem sudah bisa membaca 2 string yang dimasukkan pengguna yaitu "tujuh tiga".
+
+### 2) b. Pada parent process, program akan mengubah input menjadi angka dan melakukan perkalian dari angka yang telah diubah. Contoh: tiga tujuh menjadi 21. 
+
+Pada soal ini saya menggunakan fungsi 
+```
+int stringToNumber(char *str) {
+    if (strcmp(str, "nol") == 0) {
+        return 0;
+    } else if (strcmp(str, "satu") == 0) {
+        return 1;
+    } else if (strcmp(str, "dua") == 0) {
+        return 2;
+    } else if (strcmp(str, "tiga") == 0) {
+        return 3;
+    } else if (strcmp(str, "empat") == 0) {
+        return 4;
+    } else if (strcmp(str, "lima") == 0) {
+        return 5;
+    } else if (strcmp(str, "enam") == 0) {
+        return 6;
+    } else if (strcmp(str, "tujuh") == 0) {
+        return 7;
+    } else if (strcmp(str, "delapan") == 0) {
+        return 8;
+    } else if (strcmp(str, "sembilan") == 0) {
+        return 9;
+    } else {
+        return -1; 
+    }
+}
+```
+
+dimana fungsinya untuk mengubah dua string dar inputan pengguna menjadi angka.
+
+
 
