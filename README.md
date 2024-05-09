@@ -243,5 +243,52 @@ int stringToNumber(char *str) {
 
 dimana fungsinya untuk mengubah dua string dari inputan pengguna menjadi angka.
 
+### 2) c. Pada child process, program akan mengubah hasil angka yang telah diperoleh dari parent process menjadi kalimat. Contoh: `21` menjadi “dua puluh satu”.
+
+### 2) d. Max ingin membuat program kalkulator dapat melakukan penjumlahan, pengurangan, dan pembagian, maka pada program buatlah argumen untuk menjalankan program : 
+- perkalian	: ./kalkulator -kali
+- penjumlahan	: ./kalkulator -tambah
+- pengurangan	: ./kalkulator -kurang
+- pembagian	: ./kalkulator -bagi
+Kemudian kalkulator yang dibuatnya cuma menampilkan hasil positif jika bernilai negatif maka program akan print “ERROR”.
+
+Berikut adalah hasil apabila ia menghasilkan operasi negatif maka akan menampilkan pesan 'ERROR'
+
+![WhatsApp Image 2024-05-10 at 1 53 45 AM](https://github.com/Cakgemblung/Sisop-3-2024-MH-IT09/assets/80327619/d979e78a-7181-49b0-80b8-6e6c26b8e771)
+
+
+### 2) e. Setelah diberi semangat, Max pun melanjutkan programnya dia ingin (pada child process) kalimat akan di print dengan contoh format : 
+- perkalian	: “hasil perkalian tiga dan tujuh adalah dua puluh satu.”
+- penjumlahan	: “hasil penjumlahan tiga dan tujuh adalah sepuluh.”
+- pengurangan	: “hasil pengurangan tujuh dan tiga adalah empat.”
+- pembagian	: “hasil pembagian tujuh dan tiga adalah dua.”
+
+  Berikut adalah hasil dari operasi melalui inputan string pengguna
+  
+![WhatsApp Image 2024-05-10 at 1 53 45 AM](https://github.com/Cakgemblung/Sisop-3-2024-MH-IT09/assets/80327619/566c20f9-7905-4593-a7fe-a1b1bcd4580e)
+
+
+### 2) f. Max ingin hasil dari setiap perhitungan dicatat dalam sebuah log yang diberi nama histori.log. Pada parent process, lakukan pembuatan file log berdasarkan data yang dikirim dari child process. 
+Format: [date] [type] [message]
+Type: KALI, TAMBAH, KURANG, BAGI
+Ex:
+[10/03/24 00:29:47] [KALI] tujuh kali enam sama dengan empat puluh dua.
+[10/03/24 00:30:00] [TAMBAH] sembilan tambah sepuluh sama dengan sembilan belas.
+[10/03/24 00:30:12] [KURANG] ERROR pada pengurangan.
+
+Sebelumnya saya mengalami sedikit kesalahan pada tampilan histori.log yang belum sesuai dengan format dari soalnya seperti berikut ini
+
+![WhatsApp Image 2024-05-10 at 2 05 10 AM](https://github.com/Cakgemblung/Sisop-3-2024-MH-IT09/assets/80327619/9aecb2b8-b29d-4e3d-8c57-a56c7b100224)
+
+Sehingga setelah diperbaiki kami berhasil menampilkan histori.log sesuai dengan format permintan soal
+
+
+Berikut adalah hasil ditampilkan
+
+![WhatsApp Image 2024-05-10 at 2 01 10 AM](https://github.com/Cakgemblung/Sisop-3-2024-MH-IT09/assets/80327619/f59e3e97-81e6-430a-9af4-aa3d3de331a3)
+
+
+
+
 
 
