@@ -202,7 +202,7 @@ int main(int argc, char *argv[]) {
 ```
 ### 2) a. Sesuai request dari adiknya Max ingin nama programnya dudududu.c. Sebelum program parent process dan child process, ada input dari user berupa 2 string. Contoh input: tiga tujuh.
 
-Pada soal ini saya menggunakan fungsi ``void numberToWords(int number, char *words) {`` yang akan mengubah angka kemudian sistem akan membacanya sebagai string. 
+Pada soal ini saya menggunakan fungsi ``void numberToWords(int number, char *words) {`` yang akan mengubah angka dimana sistem akan membacanya sebagai string. 
  Berikut hasilnya   
 
 ![WhatsApp Image 2024-05-10 at 1 35 16 AM](https://github.com/Cakgemblung/Sisop-3-2024-MH-IT09/assets/80327619/3b81dcb6-c396-4f00-bae0-851d67913070)
@@ -241,7 +241,7 @@ int stringToNumber(char *str) {
 }
 ```
 
-dimana fungsinya untuk mengubah dua string dari inputan pengguna menjadi angka.
+dimana fungsinya untuk mengubah dua string dari inputan pengguna kemudian sistem akan membaca string tersebut sebagai angka.
 
 ### 2) c. Pada child process, program akan mengubah hasil angka yang telah diperoleh dari parent process menjadi kalimat. Contoh: `21` menjadi “dua puluh satu”.
 
@@ -256,6 +256,7 @@ Berikut adalah hasil apabila ia menghasilkan operasi negatif maka akan menampilk
 
 ![WhatsApp Image 2024-05-10 at 1 53 45 AM](https://github.com/Cakgemblung/Sisop-3-2024-MH-IT09/assets/80327619/d979e78a-7181-49b0-80b8-6e6c26b8e771)
 
+Disini kami menggunakan fungsi ` if (number < 0) { strcpy(words, "ERROR");` apabila hasil operasi tersebut menghasilkan bilangan negatif, maka akan memeberi pesan `"ERROR"` pada sistemnya.
 
 ### 2) e. Setelah diberi semangat, Max pun melanjutkan programnya dia ingin (pada child process) kalimat akan di print dengan contoh format : 
 - perkalian	: “hasil perkalian tiga dan tujuh adalah dua puluh satu.”
@@ -272,9 +273,9 @@ Berikut adalah hasil apabila ia menghasilkan operasi negatif maka akan menampilk
 - Format: [date] [type] [message]
 - Type: KALI, TAMBAH, KURANG, BAGI
 - Ex:
--- [10/03/24 00:29:47] [KALI] tujuh kali enam sama dengan empat puluh dua.
--- [10/03/24 00:30:00] [TAMBAH] sembilan tambah sepuluh sama dengan sembilan belas.
--- [10/03/24 00:30:12] [KURANG] ERROR pada pengurangan.
+* [10/03/24 00:29:47] [KALI] tujuh kali enam sama dengan empat puluh dua.
+* [10/03/24 00:30:00] [TAMBAH] sembilan tambah sepuluh sama dengan sembilan belas.
+* [10/03/24 00:30:12] [KURANG] ERROR pada pengurangan.
 
 Sebelumnya saya mengalami sedikit kesalahan pada tampilan histori.log yang belum sesuai dengan format dari soalnya seperti berikut ini
 
@@ -283,10 +284,24 @@ Sebelumnya saya mengalami sedikit kesalahan pada tampilan histori.log yang belum
 Sehingga setelah diperbaiki kami berhasil menampilkan histori.log sesuai dengan format permintan soal
 
 
-Berikut adalah hasil ditampilkan
+Berikut adalah hasil yang sudah sesuai dengan format soal 
 
 ![WhatsApp Image 2024-05-10 at 2 01 10 AM](https://github.com/Cakgemblung/Sisop-3-2024-MH-IT09/assets/80327619/f59e3e97-81e6-430a-9af4-aa3d3de331a3)
 
+Kami menggunakan fungsi `void writeToLog(char *operation, char *num1_str, char *num2_str, char *result_str) {` yang berfungsi untuk menampilkan histori.log sesuai dengan format yang diminta.
+Kemudian kita menggunakan fungsi ` strftime(timestamp, sizeof(timestamp), "[%d/%m/%y %H:%M:%S]", info);` untuk menampilkan waktu  dan juga tanggal saat sistem melakukan operasi seperti contohnya `[10/03/24 00:30:12]`
+
+Fungsi ini
+```
+FILE *file = fopen("histori.log", "a");
+    if (file != NULL) {
+    	if (strcmp(operation, "-kali") == 0) {
+        fprintf(file, "%s [KALI] %s kali %s sama dengan %s\n", timestamp, num1_str, num2_str, result_str);
+    	}
+```
+Digunakan untuk menampilkan format operasi yang diminta pada soal yaitu `[TAMBAH] sembilan tambah sepuluh sama dengan sembilan belas.` dimana terdapat nama operasi dengan seluruh hurufnya uppercase seperti `[TAMBAH]`
+
+Fungsi ini ` printf("\"Hasil %s %s dan %s adalah %s.\"\n", operator + 1, strNum1, strNum2, resultInWords);` digunakan agar histori tersebut bisa menampilkan kalimat sesuai dengan format misalnya `tujuh kali enam sama dengan empat puluh dua.`
 
 
 
