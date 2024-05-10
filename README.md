@@ -263,18 +263,18 @@ Berikut adalah hasil apabila ia menghasilkan operasi negatif maka akan menampilk
 - pengurangan	: “hasil pengurangan tujuh dan tiga adalah empat.”
 - pembagian	: “hasil pembagian tujuh dan tiga adalah dua.”
 
-  Berikut adalah hasil dari operasi melalui inputan string pengguna
+  Berikut adalah output yang dihasilkan melalui inputan string pengguna
   
 ![WhatsApp Image 2024-05-10 at 1 53 45 AM](https://github.com/Cakgemblung/Sisop-3-2024-MH-IT09/assets/80327619/566c20f9-7905-4593-a7fe-a1b1bcd4580e)
 
 
 ### 2) f. Max ingin hasil dari setiap perhitungan dicatat dalam sebuah log yang diberi nama histori.log. Pada parent process, lakukan pembuatan file log berdasarkan data yang dikirim dari child process. 
-Format: [date] [type] [message]
-Type: KALI, TAMBAH, KURANG, BAGI
-Ex:
-[10/03/24 00:29:47] [KALI] tujuh kali enam sama dengan empat puluh dua.
-[10/03/24 00:30:00] [TAMBAH] sembilan tambah sepuluh sama dengan sembilan belas.
-[10/03/24 00:30:12] [KURANG] ERROR pada pengurangan.
+- Format: [date] [type] [message]
+- Type: KALI, TAMBAH, KURANG, BAGI
+- Ex:
+-- [10/03/24 00:29:47] [KALI] tujuh kali enam sama dengan empat puluh dua.
+-- [10/03/24 00:30:00] [TAMBAH] sembilan tambah sepuluh sama dengan sembilan belas.
+-- [10/03/24 00:30:12] [KURANG] ERROR pada pengurangan.
 
 Sebelumnya saya mengalami sedikit kesalahan pada tampilan histori.log yang belum sesuai dengan format dari soalnya seperti berikut ini
 
