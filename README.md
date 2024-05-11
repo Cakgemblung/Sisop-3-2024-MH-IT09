@@ -6,6 +6,270 @@
 | Muhammad Hildan Adiwena | 5027231077 |
 | Nayyara Ashila | 5027231083 |
 
+## Soal 1
+## Soal 1
+Berikut adalah code yang kami buat untuk mengerjakan soal 1
+
+CODE `auth.c`
+```
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <dirent.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
+#define SHM_KEY 0x00001234
+#define MAX_FILENAME_SIZE 100
+#define MAX_FILEDATA_SIZE 10000
+
+struct shared_data {
+    int count;
+    struct {
+        char filename[MAX_FILENAME_SIZE];
+        char filedata[MAX_FILEDATA_SIZE];
+    } files[2]; // Increase according to what we need
+};
+```
+Saya mengawali dengan mendeklarasikan library yang diperlukan oleh code ini. Diawali dengan mendefine `key` pada shared memory yakni `0x00001234`. Kemudian membuat structure dari shared data yang akan dimasukkan pada shared memory.
+```
+int main() {
+    DIR *d;
+    struct dirent *dir;
+    d = opendir("./new-data");
+    if (d) {
+        int shmid = shmget(SHM_KEY, sizeof(struct shared_data), 0644|IPC_CREAT);
+        if (shmid == -1) {
+            perror("shmget");
+            exit(1);
+        }
+        struct shared_data *data = shmat(shmid, NULL, 0);
+        if (data == (void *) -1) {
+            perror("shmat");
+            exit(1);
+        }
+        data->count = 0;
+        while ((dir = readdir(d)) != NULL && data->count < 2) {
+            if (strstr(dir->d_name, "trashcan.csv") || strstr(dir->d_name, "parkinglot.csv")) {
+                strncpy(data->files[data->count].filename, dir->d_name, MAX_FILENAME_SIZE);
+
+                char filepath[1024];
+                sprintf(filepath, "./new-data/%s", dir->d_name);
+                FILE *file = fopen(filepath, "r");
+                if (file != NULL) {
+                    size_t new_len = fread(data->files[data->count].filedata, sizeof(char), MAX_FILEDATA_SIZE-1, file);
+                    if (new_len == 0) {
+                        fputs("Error reading file", stderr);
+                    } else {
+                        data->files[data->count].filedata[++new_len] = '\0'; // Just to be safe
+                    }
+                    fclose(file);
+                }
+
+                data->count++;
+            } else {
+                char filepath[1024];
+                sprintf(filepath, "./new-data/%s", dir->d_name);
+                remove(filepath);
+            }
+        }
+        closedir(d);
+        shmdt(data);
+    }
+    return 0;
+}
+```
+
+Pada int main ini, saya membuat pointer agar dapat memudahkan untuk akses terhadap direktori yang dituju. Kemudian mendapatkan shared memory dengan `shmid` agar mengetahui shared memory mana yang akan diakses. Selanjutnya melakukan penyalinan dari data yang ingin disalin yakni file yang memiliki nama `trashcan.csv` dan `parkinglot.csv`.
+
+CODE `rate.c`
+```
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
+#define SHM_KEY 0x00001234
+#define MAX_FILENAME_SIZE 100
+#define MAX_FILEDATA_SIZE 10000
+
+struct shared_data {
+    int count;
+    struct {
+        char filename[MAX_FILENAME_SIZE];
+        char filedata[MAX_FILEDATA_SIZE];
+    } files[2]; // Increase this if you want to handle more files
+};
+```
+
+Pada `rate.c` dimulai dengan komposisi yang sama dengan `auth.c` namun akan berbeda pada pendekatan di fungsi `main`. Berikut adalah fungsi `main` nya.
+```
+int main() {
+    // Attach to shared memory
+    int shmid = shmget(SHM_KEY, sizeof(struct shared_data), 0644);
+    if (shmid == -1) {
+        perror("shmget");
+        exit(1);
+    }
+    struct shared_data *data = shmat(shmid, NULL, 0);
+    if (data == (void *) -1) {
+        perror("shmat");
+        exit(1);
+    }
+
+    for (int i = 0; i < data->count; i++) {
+        // Make a copy of the file data
+        char filedata_copy[MAX_FILEDATA_SIZE];
+        strcpy(filedata_copy, data->files[i].filedata);
+
+        // Process the CSV data from the copy
+        char *line = strtok(filedata_copy, "\n");
+        float max_rating = 0.0;
+        char best_place[1024] = {0};
+        char best_filename[MAX_FILENAME_SIZE] = {0};
+        strcpy(best_filename, data->files[i].filename); // Copy the file name from shared memory
+
+        // Read the CSV data line by line
+        while (line != NULL) {
+            char place[1024];
+            float rating;
+            // Assuming the CSV format is: place_name,rating
+            if (sscanf(line, "%[^,],%f", place, &rating) == 2) {
+                if (rating > max_rating) {
+                    max_rating = rating;
+                    strcpy(best_place, place);
+                }
+            }
+            line = strtok(NULL, "\n");
+        }
+
+        // Output the best place with the highest rating
+        printf("Output:\n");
+        printf("Type: %s\n", strstr(best_filename, "trashcan") ? "Trash Can" : "Parking Lot");
+        printf("Filename: %s\n", best_filename);
+        printf("------------------------\n");
+        printf("Name: %s\n", best_place);
+        printf("Rating: %.2f\n", max_rating);
+    }
+
+    // Detach from shared memory
+    shmdt(data);
+
+    return 0;
+}
+```
+
+Secara garis besar, tujuan dari masing-masing code telah diberikan sebagai comment pada code tersebut. Program akan membuat salinan dari data yang telah tertulis pada shared memory terlebih dahulu dan ini dilakukan agar file tidak "hilang" saat dilakukan pengurutan highest rating seperti yang diminta pada soal. Kemudian untuk melakukan pengurutan, program akan membaca file salinan yang telah dibuat pada shared memory untuk dilakukan pengurutan sesuai yang diminta.
+
+CODE `db.c`
+```
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <time.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#define SHM_KEY 0x00001234
+#define MAX_FILENAME_SIZE 100
+#define MAX_FILEDATA_SIZE 10000
+
+struct shared_data {
+    int count;
+    struct {
+        char filename[MAX_FILENAME_SIZE];
+        char filedata[MAX_FILEDATA_SIZE];
+    } files[2]; // Increase this if you want to handle more files
+};
+```
+
+Dimulai dengan konsep yang sama yakni inisialisasi struct `shared data`, include library, dan juga define pada key shared memory yang digunakan.
+
+```
+int main() {
+    // Attach to shared memory
+    int shmid = shmget(SHM_KEY, sizeof(struct shared_data), 0644);
+    if (shmid == -1) {
+        perror("shmget");
+        exit(1);
+    }
+    struct shared_data *data = shmat(shmid, NULL, 0);
+    if (data == (void *) -1) {
+        perror("shmat");
+        exit(1);
+    }
+
+    // Open the log file
+    FILE *log_file = fopen("db.log", "a");
+    if (log_file == NULL) {
+        perror("fopen");
+        exit(1);
+    }
+
+    for (int i = 0; i < data->count; i++) {
+        // Create the new file path
+        char new_filepath[1024];
+        sprintf(new_filepath, "./database/%s", data->files[i].filename);
+
+        // Write the file data to the new file
+        FILE *new_file = fopen(new_filepath, "w");
+        if (new_file == NULL) {
+            perror(new_filepath); // Print the error message
+            exit(1);
+        } else {
+            fputs(data->files[i].filedata, new_file);
+            fclose(new_file);
+        }
+
+        // Get the current time
+        time_t t = time(NULL);
+        struct tm tm = *localtime(&t);
+
+        // Write the log entry
+        fprintf(log_file, "[%02d/%02d/%04d %02d:%02d:%02d] [%s] [%s]\n",
+                tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec,
+                strstr(data->files[i].filename, "trashcan") ? "Trash Can" : "Parking Lot",
+                data->files[i].filename);
+
+        // Remove the original file
+        char old_filepath[1024];
+        sprintf(old_filepath, "/home/azrael/sisop/modul3/soal1/new-data/%s", data->files[i].filename);
+        if (remove(old_filepath) != 0) {
+            perror(old_filepath); // Print the error message
+            exit(1);
+        }
+    }
+
+    // Close the log file
+    fclose(log_file);
+
+    // Detach from shared memory
+    shmdt(data);
+
+    return 0;
+}
+```
+
+Pada fungsi `main` ini saya melakukan "pemindahan" data dari shared memory ke file direktori yang diminta oleh soal. Kemudian membuka file log yakni `db.log` untuk kemudian menuliskan log pemindahan yang dilakukan oleh program ini pada file log yang diminta.
+
+Berikut ini adalah hasil output dari code kami.
+
+tree sebelum dijalankan
+![image](https://github.com/Cakgemblung/Sisop-3-2024-MH-IT09/assets/144968322/58afde45-92ef-4a80-8a7b-256fc8fa3ffc)
+
+output `rate.c`
+![image](https://github.com/Cakgemblung/Sisop-3-2024-MH-IT09/assets/144968322/a04bc105-8dbd-4c9d-8572-a1aa82042c02)
+
+isi file db.log
+![image](https://github.com/Cakgemblung/Sisop-3-2024-MH-IT09/assets/144968322/3cddfad8-4a06-404a-98a5-d179c416b247)
+
+tree setelah dijalankan
+![image](https://github.com/Cakgemblung/Sisop-3-2024-MH-IT09/assets/144968322/a1c92184-2803-41a2-b81a-0096c1c56c04)
+
+
 ## Soal 2
 
 Berikut code yang digunakan
@@ -304,6 +568,7 @@ Digunakan untuk menampilkan format operasi yang diminta pada soal yaitu `[TAMBAH
 Fungsi ini ` printf("\"Hasil %s %s dan %s adalah %s.\"\n", operator + 1, strNum1, strNum2, resultInWords);` digunakan agar histori tersebut bisa menampilkan kalimat sesuai dengan format misalnya `tujuh kali enam sama dengan empat puluh dua.`
 
 
+## Soal 3
 
 
 
