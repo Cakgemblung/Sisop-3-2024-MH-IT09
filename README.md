@@ -1178,9 +1178,11 @@ int main() {
 ```
 
 berikut adalah hasil mendownload file
+
 ![Screenshot from 2024-05-11 22-19-30](https://github.com/Cakgemblung/Sisop-3-2024-MH-IT09/assets/151426649/5e28f2c4-90c2-40ba-8e17-a9bd8ff72fc7)
 
 berikut hasil saat command exit
+
 ![Screenshot from 2024-05-11 22-20-22](https://github.com/Cakgemblung/Sisop-3-2024-MH-IT09/assets/151426649/d3fad0a7-f3d1-4dfd-afec-644f7fc131cd)
 
 maaf untuk menampilkan isi dari file dan lain sebagainya tersebut saya masih mengalami masalah.
