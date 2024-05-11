@@ -6,7 +6,7 @@
 | Muhammad Hildan Adiwena | 5027231077 |
 | Nayyara Ashila | 5027231083 |
 
-## Soal 1
+
 ## Soal 1
 Berikut adalah code yang kami buat untuk mengerjakan soal 1
 
@@ -593,7 +593,319 @@ Digunakan untuk menampilkan format operasi yang diminta pada soal yaitu `[TAMBAH
 Fungsi ini ` printf("\"Hasil %s %s dan %s adalah %s.\"\n", operator + 1, strNum1, strNum2, resultInWords);` digunakan agar histori tersebut bisa menampilkan kalimat sesuai dengan format misalnya `tujuh kali enam sama dengan empat puluh dua.`
 
 
-## Soal 3
+Berikut adalah code yang kami buat untuk mengerjakan soal 3
+
+CODE `action.c`
+```
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+const char* gap(float distance) {
+    if (distance < 0) return "Invalid distance";
+    else if (distance < 3.5) return "Gogogo";
+    else if (distance >= 3.5 && distance <= 10) return "Push";
+    else return "Stay out of trouble";
+}
+
+const char* fuel(char* fuel_input) {
+    float fuel_percentage;
+
+    // Check if input percentage string
+    if (strchr(fuel_input, '%') != NULL) {
+        fuel_percentage = atof(fuel_input);
+    } 
+    // check if input string or integeger
+    else if (strchr(fuel_input, '.') == NULL) {
+        fuel_percentage = atoi(fuel_input);
+    } 
+    // Input is float
+    else {
+        fuel_percentage = atof(fuel_input);
+    }
+
+    if (fuel_percentage > 80) return "Push Push Push";
+    else if (fuel_percentage >= 50 && fuel_percentage <= 80) return "You can go";
+    else return "Conserve Fuel";
+}
+
+const char* tire(int tire_usage) {
+    if (tire_usage < 0) return "Invalid Tire Usage";
+    if (tire_usage > 80) return "Go Push Go Push";
+    else if (tire_usage >= 50 && tire_usage <= 80) return "Good Tire Wear";
+    else if (tire_usage >= 30 && tire_usage < 50) return "Conserve Your Tire";
+    else return "Box Box Box";
+}
+
+const char* tire_change(char* tire_type) {
+    if (strcmp(tire_type, "Soft") == 0) return "Mediums Ready";
+    else if (strcmp(tire_type, "Medium") == 0) return "Box for Softs";
+    else return "Invalid Tire Type";
+}
 
 
+```
+Pada file action.c saya membuat `const char*` yang akan merujuk masing-masing fungsi yang akan dipanggil oleh `paddock.c`. Seluruh masing-masing fungsi telah disesukan agar sesuai dengan ketentuan yang diminta oleh soal untuk `actions.c`
 
+CODE `paddock.c`
+```
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <time.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <signal.h>
+#include "actions.c"
+
+#define PORT 8080
+#define BUFFER_SIZE 1024
+#define LOG_FILE "/home/azrael/sisop/modul3/soal3/server/race.log"
+
+// Function to write log
+void write_log(char *source, char *command, char *info, const char *response) {
+    chdir("/home/azrael/sisop/modul3/soal3/server"); // Change working directory
+    FILE *log_file = fopen(LOG_FILE, "a");
+    if (log_file == NULL) {
+        perror("Failed to open log file");
+        return;
+    }
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    fprintf(log_file, "[%s] [%02d/%02d/%04d %02d:%02d:%02d]: [%s] [%s]\n", source, tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec, command, info);
+    fprintf(log_file, "[Paddock] [%02d/%02d/%04d %02d:%02d:%02d]: [%s] [%s]\n", tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec, command, response);
+    fclose(log_file);
+}
+```
+
+Pada awal file ini saya mendeklarasikan library dan melakukan `define` yang akan dipakai pada program ini. Kemudian melakukan `include` pada file `actions.c` agar program ini dapat memanggil fungsi yang dijalankan oleh `actions.c` untuk dijalankan pada program ini. Kemudian saya membuat fungsi untuk menuliskan log pada `race.log`.
+```
+void wallahidaemon() {
+      pid_t pid, sid;
+
+  pid = fork();
+
+  if (pid < 0) {
+    exit(EXIT_FAILURE);
+  }
+
+  if (pid > 0) {
+    exit(EXIT_SUCCESS);
+  }
+
+  umask(0);
+
+  sid = setsid();
+  if (sid < 0) {
+    exit(EXIT_FAILURE);
+  }
+
+  if ((chdir("/home/azrael/sisop/modul3/soal3/server")) < 0) {
+    exit(EXIT_FAILURE);
+  }
+
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
+    
+    //open specific file that acts like a blackhole (everything that happen in it will be erased immediately)
+    stdin = fopen ("/dev/null", "r");
+    stdout = fopen ("/dev/null", "w+");
+    stderr = fopen ("/dev/null", "w+");
+}
+```
+
+Pada fungsi `wallahidaemon` ini saya membuat agar program ini dapat dijalankan secara daemon. Kemudian saya melakukan sedikit perubahan pada bagian akhir agar program ini dapat berjalan secara daemon yakni dengan membuatnya melakukan akses kepada file `dev/null` untuk melakukan akses seperti write atau read. PERLU DIKETAHUI bahwa file ini akan menghapus semua manipulasi data yang berada didalamnya (tidak menyimpan).
+
+```
+int main() {
+    int server_fd, new_socket;
+    struct sockaddr_in address;
+    int addrlen = sizeof(address);
+    char buffer[BUFFER_SIZE] = {0};
+
+    // Create daemon process
+    wallahidaemon();
+
+    // Create socket
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+        perror("Socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // Set address and port
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons(PORT);
+
+    // Bind socket to address and port
+    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+        perror("Bind failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // Listen for incoming connections
+    if (listen(server_fd, 3) < 0) {
+        perror("Listen failed");
+        exit(EXIT_FAILURE);
+    }
+    while (1) {
+        // Accept incoming connection
+        if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0) {
+            perror("Accept failed");
+            exit(EXIT_FAILURE);
+        }
+
+        // Read command from driver
+        int bytes_read = read(new_socket, buffer, BUFFER_SIZE);
+        if (bytes_read < 0) {
+            perror("Read failed");
+            close(new_socket);
+            continue;
+        }
+        buffer[bytes_read] = '\0'; // Add null terminator
+
+        // Parse command and info
+        char *command = strtok(buffer, "|");
+        char *info = strtok(NULL, "\n");
+
+        // Process command
+        const char *result;
+        if (strcmp(command, "Gap") == 0) {
+            float distance = atof(info);
+            result = gap(distance);
+        } else if (strcmp(command, "Fuel") == 0) {
+            result = fuel(info);
+        } else if (strcmp(command, "Tire") == 0) {
+            int tire_usage = atoi(info);
+            result = tire(tire_usage);
+        } else if (strcmp(command, "Tire Change") == 0) {
+            result = tire_change(info);
+        } else {
+            printf("Invalid command\n");
+            close(new_socket);
+            continue;
+        }
+
+        // Send result to driver
+        int bytes_sent = send(new_socket, result, strlen(result), 0);
+        if (bytes_sent < 0) {
+            perror("Send failed");
+        }
+
+        // Write log
+        write_log("Driver", command, info, result);
+
+        close(new_socket);
+    }
+
+    return 0;
+}
+```
+Pada fungsi `main` ini saya memanggil fungsi `wallahidaemon` dulu agar program dapat berjalan secara daemon. Kemudian saya melakukan pembuatan socker dan melakukan konfigurasi agar socket tersebut dapat berkomunikasi. Selanjutnya saya membuat agar socker dapat membaca `command` dan `info` dari program `driver`. Kemudian dilakukan pemrosesan pada input tersebut untuk selanjutnya diteruskan lagi "jawabannya" kepada program driver. Program ditutup dengan menuliskan log pada file `race.log`
+
+
+CODE `driver.c`
+```
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <string.h>
+
+#define PORT 8080
+#define IP "127.0.0.1"
+#define BUFFER_SIZE 1024
+
+void read_input(char *input, int max_length) {
+    fgets(input, max_length, stdin);
+    input[strcspn(input, "\n")] = '\0'; // Deleting newline from the input
+}
+```
+
+Pada code ini saya melakukan declare library dan `define` yang nantinya akan digunakan pada program ini. Kemudian membuat fungsi `read_input` yang akan melakukan pembacaan pada input nanti.
+
+```
+int main() {
+    int sock = 0;
+    struct sockaddr_in serv_addr;
+    char buffer[BUFFER_SIZE] = {0};
+    char command[BUFFER_SIZE] = {0};
+    char info_input[BUFFER_SIZE] = {0};
+
+    //Create new socket
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        perror("Socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    //Set the server address and port number
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORT);
+
+    //Convert the IP address from text format to binary format and store it in the server address structure
+    if (inet_pton(AF_INET, IP, &serv_addr.sin_addr) <= 0) {
+        perror("Invalid address/ Address not supported");
+        exit(EXIT_FAILURE);
+    }
+
+    //Make a connection to the server
+    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+        perror("Connection failed");
+        exit(EXIT_FAILURE);
+    }
+
+    while (1) {
+        // Read Command and Info
+        printf("Command (Gap/Fuel/Tire/Tire Change): ");
+        read_input(command, BUFFER_SIZE);
+        printf("Info: ");
+        read_input(info_input, BUFFER_SIZE);
+        char info[BUFFER_SIZE] = {0};
+        strncpy(info, info_input, BUFFER_SIZE - 1);
+
+        // Sending command and info
+        char combined_command_info[BUFFER_SIZE] = {0};
+        sprintf(combined_command_info, "%s|%s", command, info); // Using "|" as a delimiter
+        send(sock, combined_command_info, strlen(combined_command_info), 0);
+
+        // Receive respons from the server
+        int bytes_read = read(sock, buffer, BUFFER_SIZE);
+        if (bytes_read < 0) {
+            perror("Read failed");
+            exit(1);
+        }
+        buffer[bytes_read] = '\0';
+
+        // Showing the output
+        printf("[Driver] : [%s] [%s]\n", command, info);
+        printf("[Paddock]: [%s]\n", buffer);
+
+        // Cleaning Buffer
+        memset(buffer, 0, sizeof(buffer));
+
+        // Stop after finished
+        break;
+    }
+
+    return 0;
+}
+```
+
+Pada fungsi `main` ini saya membuat agar program driver ini dapat berkomunikasi dengan socket yang dibuat pada `padddock.c` sebelumnya. Kemudian saya menggunaakn fungsi `while(1)` agar program dapat berjalan secara CLI seperti salah satu yang diperbolehkan oleh soal. Kemudian saya membuat agar programnya dapat membaca `command` dan `info` yang diinputkan oleh user, kemudian mengirimnya ke socket, kemudian menerima jawaban dari `paddock.c` melalui socket tersebut untuk mengeluarkan output yang diminta oleh soal. Kemudian akan dilakukan cleaning buffer agar tidak terjadi hal yang tidak diinginkan dan selanjutnya program akan berhenti.
+
+Berikut ini adalah hasil output dari code kami.
+
+program paddock dapat berjalan secara daemon
+![image](https://github.com/Cakgemblung/Sisop-3-2024-MH-IT09/assets/144968322/f1d00438-5e9b-4e37-8adb-fc2e963744a3)
+
+jalannya program driver
+![image](https://github.com/Cakgemblung/Sisop-3-2024-MH-IT09/assets/144968322/3f24d276-882c-4d87-ad7d-9fc4060c279c)
+
+isi dari race.log
+![image](https://github.com/Cakgemblung/Sisop-3-2024-MH-IT09/assets/144968322/e04b62f3-f24b-4c0c-8976-5d6c9a317e82)
