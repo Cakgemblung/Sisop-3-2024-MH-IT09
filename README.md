@@ -909,3 +909,280 @@ jalannya program driver
 
 isi dari race.log
 ![image](https://github.com/Cakgemblung/Sisop-3-2024-MH-IT09/assets/144968322/e04b62f3-f24b-4c0c-8976-5d6c9a317e82)
+
+Berikut code yang saya gunakan untuk mengerjakan soal no 4
+
+berikut adalah code untuk server.
+```
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <time.h>
+#include <curl/curl.h>
+
+#define PORT 8080
+#define BUFFER_SIZE 1024
+#define LOG_FILE "change.log"
+#define FILENAME "myanimelist.csv"
+#define DOWNLOAD_URL "https://drive.google.com/uc?export=download&id=10p_kzuOgaFY3WT6FVPJIXFbkej2s9f50"
+
+
+// Function to download file using wget
+int download_file(const char *url, const char *filename) {
+    char command[BUFFER_SIZE];
+    snprintf(command, sizeof(command), "wget -O %s %s", filename, url);
+    return system(command);
+}
+
+// Function to read the content of a file
+void read_file_content(const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (file) {
+        char buffer[BUFFER_SIZE];
+        while (fgets(buffer, BUFFER_SIZE, file)) {
+            printf("%s", buffer);
+        }
+        fclose(file);
+    } else {
+        printf("Failed to open file for reading\n");
+    }
+}
+
+// Function to log changes
+void log_change(const char *type, const char *message) {
+    FILE *log_file = fopen(LOG_FILE, "a");
+    if (log_file != NULL) {
+        time_t current_time;
+        time(&current_time);
+        struct tm *local_time = localtime(&current_time);
+        fprintf(log_file, "[%02d/%02d/%02d] [%s] %s\n", local_time->tm_mday, local_time->tm_mon + 1, local_time->tm_year % 100, type, message);
+        fclose(log_file);
+    } else {
+        printf("Failed to open log file\n");
+        fflush(stdout); // Force writing output to terminal
+    }
+}
+
+// Function to add new anime entry
+void add_anime_entry(const char *entry) {
+    FILE *file = fopen(FILENAME, "a");
+    if (file) {
+        fprintf(file, "%s\n", entry);
+        fclose(file);
+        // Log addition
+        log_change("ADD", entry);
+    } else {
+        printf("Failed to open file for adding entry\n");
+    }
+}
+
+// Function to edit anime entry
+void edit_anime_entry(const char *old_entry, const char *new_entry) {
+    FILE *file = fopen(FILENAME, "r+");
+    if (file) {
+        char line[BUFFER_SIZE];
+        long int pos;
+        while (fgets(line, BUFFER_SIZE, file)) {
+            if (strstr(line, old_entry) == line) {
+                pos = ftell(file) - strlen(line);
+                fseek(file, pos, SEEK_SET);
+                fprintf(file, "%s\n", new_entry);
+                fclose(file);
+                // Log edit
+                log_change("EDIT", new_entry);
+                return;
+            }
+        }
+        printf("Anime entry not found for editing\n");
+        fclose(file);
+    } else {
+        printf("Failed to open file for editing entry\n");
+    }
+}
+
+// Function to delete anime entry
+void delete_anime_entry(const char *title) {
+    FILE *file = fopen(FILENAME, "r+");
+    if (file) {
+        FILE *temp_file = fopen("temp.csv", "w");
+        char line[BUFFER_SIZE];
+        int found = 0;
+        while (fgets(line, BUFFER_SIZE, file)) {
+            if (strstr(line, title) != line) {
+                fprintf(temp_file, "%s", line);
+            } else {
+                found = 1;
+            }
+        }
+        fclose(file);
+        fclose(temp_file);
+        remove(FILENAME);
+        rename("temp.csv", FILENAME);
+        // Log deletion
+        if (found) {
+            log_change("DEL", title);
+        } else {
+            printf("Anime entry not found for deletion\n");
+        }
+    } else {
+        printf("Failed to open file for deleting entry\n");
+    }
+}
+
+void handle_client(int client_socket) {
+    char buffer[BUFFER_SIZE] = {0};
+    int valread;
+
+    // Read client message
+    valread = read(client_socket, buffer, BUFFER_SIZE);
+    printf("Client message: %s\n", buffer);
+    fflush(stdout); // Force writing output to terminal
+
+    // Process client message
+    if (strcmp(buffer, "exit\n") == 0) {
+        printf("Closing connection with client\n");
+        close(client_socket);
+        return;
+    } else if (strcmp(buffer, "download\n") == 0) {
+        // Download file using wget
+        int success = download_file(DOWNLOAD_URL, FILENAME);
+        if (success == 0) {
+            printf("File downloaded successfully\n");
+            // Respond to client
+            char *response = "File downloaded successfully";
+            send(client_socket, response, strlen(response), 0);
+        } else {
+            fprintf(stderr, "Failed to download file\n");
+            // Respond to client
+            char *response = "Failed to download file";
+            send(client_socket, response, strlen(response), 0);
+        }
+    } else if (strcmp(buffer, "read\n") == 0) {
+        // Read the content of the downloaded file
+        printf("File content:\n");
+        read_file_content(FILENAME);
+        // Respond to client
+        char *response = "File content displayed on server terminal";
+        send(client_socket, response, strlen(response), 0);
+    } else {
+        // Respond to client
+        char *response = "Message received";
+        send(client_socket, response, strlen(response), 0);
+    }
+
+    // Close client socket
+    close(client_socket);
+}
+
+int main() {
+    int server_fd, client_socket;
+    struct sockaddr_in address;
+    int addrlen = sizeof(address);
+
+    // Create server socket
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+        perror("Socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons(PORT);
+
+    // Bind server socket
+    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+        perror("Binding failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // Listen for incoming connections
+    if (listen(server_fd, 3) < 0) {
+        perror("Listen failed");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Server listening on port %d\n", PORT);
+    fflush(stdout); // Force writing output to terminal
+
+    // Accept client connections and handle messages
+    while (1) {
+        if ((client_socket = accept(server_fd, (struct sockaddr *) &address, (socklen_t *) &addrlen)) < 0) {
+            perror("Accept failed");
+            exit(EXIT_FAILURE);
+        }
+
+        handle_client(client_socket);
+    }
+
+    return 0;
+}
+```
+
+berikut file untuk client.
+```
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h> // For inet_pton
+
+#define PORT 8080
+#define BUFFER_SIZE 1024
+
+int main() {
+    int sock = 0;
+    struct sockaddr_in serv_addr;
+
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        perror("socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    memset(&serv_addr, '0', sizeof(serv_addr));
+
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORT);
+
+    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+        perror("Invalid address/ Address not supported");
+        exit(EXIT_FAILURE);
+    }
+
+    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+        perror("connection failed");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Connected to server\n");
+
+    // Send message to server
+    char message[BUFFER_SIZE];
+    printf("Enter message: ");
+    fgets(message, BUFFER_SIZE, stdin);
+    send(sock, message, strlen(message), 0);
+    printf("Message sent\n");
+
+    // Receive response from server
+    char buffer[BUFFER_SIZE] = {0};
+    read(sock, buffer, BUFFER_SIZE);
+    printf("Server response: %s\n", buffer);
+
+    close(sock);
+    return 0;
+}
+```
+
+berikut adalah hasil mendownload file
+![Screenshot from 2024-05-11 22-19-30](https://github.com/Cakgemblung/Sisop-3-2024-MH-IT09/assets/151426649/5e28f2c4-90c2-40ba-8e17-a9bd8ff72fc7)
+
+berikut hasil saat command exit
+![Screenshot from 2024-05-11 22-20-22](https://github.com/Cakgemblung/Sisop-3-2024-MH-IT09/assets/151426649/d3fad0a7-f3d1-4dfd-afec-644f7fc131cd)
+
+maaf untuk menampilkan isi dari file dan lain sebagainya tersebut saya masih mengalami masalah.
+
+
