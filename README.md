@@ -508,6 +508,10 @@ int stringToNumber(char *str) {
 dimana fungsinya untuk mengubah dua string dari inputan pengguna kemudian sistem akan membaca string tersebut sebagai angka.
 
 ### 2) c. Pada child process, program akan mengubah hasil angka yang telah diperoleh dari parent process menjadi kalimat. Contoh: `21` menjadi “dua puluh satu”.
+Disini saya menggunakan `fungsi void numberToWords(int number, char *words) {`
+   Fungsi `numberToWords()` ini melakukan konversi dari bilangan bulat menjadi kata-kata dalam Bahasa Indonesia. Contohnya, bilangan 21 akan diubah menjadi "dua puluh satu". Fungsi ini digunakan di dalam child process untuk mengonversi hasil perhitungan matematika (misalnya, hasil perkalian, penjumlahan, pengurangan, atau pembagian) menjadi kalimat yang dapat ditampilkan kepada pengguna atau ditulis ke dalam file log.
+
+Di dalam child process `(if (pid == 0))` hasil perhitungan disimpan dalam bentuk bilangan bulat, dan kemudian diubah menjadi kata-kata menggunakan fungsi `numberToWords()` Hasil yang sudah diubah menjadi kata-kata ini kemudian ditampilkan ke layar atau dituliskan ke dalam file log.
 
 ### 2) d. Max ingin membuat program kalkulator dapat melakukan penjumlahan, pengurangan, dan pembagian, maka pada program buatlah argumen untuk menjalankan program : 
 - perkalian	: ./kalkulator -kali
@@ -527,6 +531,27 @@ Disini kami menggunakan fungsi ` if (number < 0) { strcpy(words, "ERROR");` apab
 - penjumlahan	: “hasil penjumlahan tiga dan tujuh adalah sepuluh.”
 - pengurangan	: “hasil pengurangan tujuh dan tiga adalah empat.”
 - pembagian	: “hasil pembagian tujuh dan tiga adalah dua.”
+
+Ini adalah code yang digunakan
+```
+int result;
+        if (strcmp(operator, "-kali") == 0) {
+            result = num1 * num2;
+        } else if (strcmp(operator, "-tambah") == 0) {
+            result = num1 + num2;
+        } else if (strcmp(operator, "-kurang") == 0) {
+            result = num1 - num2;
+        } else if (strcmp(operator, "-bagi") == 0) {
+            if (num2 == 0) {
+```
+Potongan Fungsi yang diatas adalah bagian dari proses perhitungan dalam program. Di sinilah operasi matematika sesuai dengan permintaan yang diberikan oleh pengguna dieksekusi.
+- `int result;=` Variabel result dideklarasikan untuk menyimpan hasil perhitungan.
+- `if (strcmp(operator, "-kali") == 0)` Pengecekan apakah operator yang diberikan adalah "-kali" (perkalian). Jika ya, maka operasi perkalian (num1 * num2) dilakukan dan hasilnya disimpan dalam variabel result.
+- `else if (strcmp(operator, "-tambah") == 0)` berfungsi Jika operator adalah "-tambah" (penjumlahan), maka operasi penjumlahan (num1 + num2) dilakukan dan hasilnya disimpan dalam result.
+
+- `else if (strcmp(operator, "-kurang") == 0)` berfungsi Jika operator adalah "-kurang" (pengurangan), maka operasi pengurangan (num1 - num2) dilakukan dan hasilnya disimpan dalam result.
+
+- `else if (strcmp(operator, "-bagi") == 0)` berfungsi Jika operator adalah "-bagi" (pembagian).
 
   Berikut adalah output yang dihasilkan melalui inputan string pengguna
   
